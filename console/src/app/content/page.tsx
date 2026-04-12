@@ -18,10 +18,12 @@ type TabStatus = (typeof TABS)[number]["status"];
 
 
 const CONTENT_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
-  blog_post: { bg: "bg-blue-500/10 border-blue-500/20", text: "text-blue-400" },
-  twitter_thread: { bg: "bg-sky-500/10 border-sky-500/20", text: "text-sky-400" },
-  linkedin_post: { bg: "bg-indigo-500/10 border-indigo-500/20", text: "text-indigo-400" },
-  reddit_post: { bg: "bg-orange-500/10 border-orange-500/20", text: "text-orange-400" },
+  seo_article: { bg: "bg-blue-500/10 border-blue-500/20", text: "text-blue-400" },
+  industry_brief: { bg: "bg-sky-500/10 border-sky-500/20", text: "text-sky-400" },
+  tutorial: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-400" },
+  comparison: { bg: "bg-purple-500/10 border-purple-500/20", text: "text-purple-400" },
+  changelog: { bg: "bg-amber-500/10 border-amber-500/20", text: "text-amber-400" },
+  social_post: { bg: "bg-orange-500/10 border-orange-500/20", text: "text-orange-400" },
 };
 
 function ContentIcon() {
@@ -245,7 +247,7 @@ export default function ContentPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showGenerate, setShowGenerate] = useState(false);
   const [genKeyword, setGenKeyword] = useState("");
-  const [genType, setGenType] = useState("blog_post");
+  const [genType, setGenType] = useState("seo_article");
   const [genLang, setGenLang] = useState("en");
   const [generating, setGenerating] = useState(false);
 
@@ -349,10 +351,12 @@ export default function ContentPage() {
                     onChange={(e) => setGenType(e.target.value)}
                     className="bg-[#111113] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-zinc-200 h-10 focus:outline-none focus:border-blue-500/40"
                   >
-                    <option value="blog_post">Blog Post</option>
-                    <option value="twitter_thread">Twitter Thread</option>
-                    <option value="linkedin_post">LinkedIn Post</option>
-                    <option value="reddit_post">Reddit Post</option>
+                    <option value="seo_article">SEO Article</option>
+                    <option value="industry_brief">Industry Brief</option>
+                    <option value="tutorial">Tutorial</option>
+                    <option value="comparison">Comparison</option>
+                    <option value="changelog">Changelog</option>
+                    <option value="social_post">Social Post</option>
                   </select>
                 </div>
                 <div>
