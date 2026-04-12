@@ -164,3 +164,42 @@ def generate_weekly_plan_task() -> int:
         return count
 
     return asyncio.run(_plan())
+
+
+@celery.task
+def reindex_knowledge_task():
+    """Delete all knowledge chunks and re-index from docs/**/*.md files."""
+    import asyncio
+    import glob
+    import json
+    from sqlalchemy import text
+    from community.knowledge.indexer import KnowledgeIndexer
+    from models.knowledge import KnowledgeChunk
+
+    async def _reindex():
+        from database import async_session
+        indexer = KnowledgeIndexer(api_key=settings.soxai_api_key, base_url=settings.soxai_base_url)
+        doc_files = glob.glob("docs/**/*.md", recursive=True)
+        async with async_session() as db:
+            await db.execute(text("DELETE FROM knowledge_chunks"))
+            for filepath in doc_files:
+                with open(filepath) as f:
+                    content = f.read()
+                chunks = indexer.chunk_markdown(content, filepath)
+                if not chunks:
+                    continue
+                texts = [c.content for c in chunks]
+                embeddings = indexer.embed(texts)
+                for chunk, embedding in zip(chunks, embeddings):
+                    record = KnowledgeChunk(
+                        source_file=chunk.source_file,
+                        heading=chunk.heading,
+                        content=chunk.content,
+                        embedding=json.dumps(embedding),
+                        chunk_index=chunk.chunk_index,
+                    )
+                    db.add(record)
+            await db.commit()
+
+    asyncio.run(_reindex())
+    print("Knowledge base reindexed")

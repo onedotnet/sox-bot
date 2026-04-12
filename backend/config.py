@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Twitter
     twitter_bearer_token: str = ""
 
+    # Discord
+    discord_token: str = ""
+
     model_config = {"env_prefix": "SOXBOT_"}
 
 
