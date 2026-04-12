@@ -13,6 +13,10 @@ celery.conf.beat_schedule = {
         "task": "tasks.celery_app.generate_weekly_plan_task",
         "schedule": crontab(day_of_week="sunday", hour=20, minute=0),
     },
+    "weekly-report": {
+        "task": "tasks.celery_app.generate_weekly_report_task",
+        "schedule": crontab(day_of_week="sunday", hour=21, minute=0),
+    },
 }
 
 
@@ -203,3 +207,54 @@ def reindex_knowledge_task():
 
     asyncio.run(_reindex())
     print("Knowledge base reindexed")
+
+
+@celery.task
+def generate_weekly_report_task():
+    """Runs every Sunday 9pm UTC. Aggregates the past week's metrics and generates AI report."""
+    import asyncio
+    import json
+    from datetime import datetime, timedelta, timezone
+
+    from analytics.aggregator import AnalyticsAggregator
+    from analytics.report_generator import ReportGenerator
+    from models.analytics import WeeklyReport
+
+    async def _generate():
+        from database import async_session
+
+        now = datetime.now(timezone.utc)
+        week_end = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        week_start = week_end - timedelta(days=7)
+        prev_start = week_start - timedelta(days=7)
+
+        async with async_session() as db:
+            agg = AnalyticsAggregator(db)
+            current = await agg.aggregate_week(week_start, week_end)
+            previous = await agg.aggregate_week(prev_start, week_start)
+
+            gen = ReportGenerator()
+            summary, action_items = gen.generate(current, previous)
+
+            report = WeeklyReport(
+                week_start=week_start,
+                week_end=week_end,
+                leads_discovered=current.leads_discovered,
+                leads_published=current.leads_published,
+                enterprise_leads=current.enterprise_leads,
+                content_generated=current.content_generated,
+                content_published=current.content_published,
+                content_cost_cents=current.content_cost_cents,
+                messages_received=current.messages_received,
+                messages_auto_resolved=current.messages_auto_resolved,
+                messages_escalated=current.messages_escalated,
+                community_leads=current.community_leads,
+                resolution_rate=current.resolution_rate,
+                summary=summary,
+                action_items=json.dumps(action_items),
+            )
+            db.add(report)
+            await db.commit()
+
+    asyncio.run(_generate())
+    print("Weekly report generated")
