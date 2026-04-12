@@ -51,7 +51,8 @@ class SoxBot(commands.Bot):
 
 
 def run_discord_bot():
-    token = os.environ.get("SOXBOT_DISCORD_TOKEN", "")
+    from config import settings
+    token = settings.discord_token
     if not token:
         print("SOXBOT_DISCORD_TOKEN not set, skipping Discord bot")
         return
