@@ -134,3 +134,50 @@ export async function triggerReindex() {
   const res = await fetch(`${API_BASE}/api/community/knowledge/reindex`, { method: "POST" });
   return res.json();
 }
+
+export interface WeeklyReport {
+  id: number;
+  week_start: string;
+  week_end: string;
+  leads_discovered: number;
+  leads_published: number;
+  enterprise_leads: number;
+  content_generated: number;
+  content_published: number;
+  content_cost_cents: number;
+  messages_received: number;
+  messages_auto_resolved: number;
+  messages_escalated: number;
+  community_leads: number;
+  resolution_rate: number;
+  summary: string;
+  action_items: string; // JSON array
+  created_at: string;
+}
+
+export interface AnalyticsOverview {
+  scout_pending: number;
+  scout_published_this_week: number;
+  content_drafts: number;
+  content_scheduled: number;
+  community_messages_today: number;
+  community_resolution_rate: number;
+  leads_trend: number;
+  content_trend: number;
+  messages_trend: number;
+}
+
+export async function fetchAnalyticsOverview(): Promise<AnalyticsOverview> {
+  const res = await fetch(`${API_BASE}/api/analytics/overview`);
+  return res.json();
+}
+
+export async function fetchWeeklyReports(limit = 10): Promise<WeeklyReport[]> {
+  const res = await fetch(`${API_BASE}/api/analytics/reports?limit=${limit}`);
+  return res.json();
+}
+
+export async function triggerReport() {
+  const res = await fetch(`${API_BASE}/api/analytics/reports/generate`, { method: "POST" });
+  return res.json();
+}
