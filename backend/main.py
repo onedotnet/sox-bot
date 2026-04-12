@@ -6,7 +6,7 @@ app = FastAPI(title="sox.bot", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://sox.bot", "http://localhost:3000"],
+    allow_origins=["https://sox.bot", "http://localhost:3000", "http://localhost:3010", "http://192.168.3.102:3010", "http://192.168.3.102:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
