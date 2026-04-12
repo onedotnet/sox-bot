@@ -90,6 +90,11 @@ export async function generateContent(data: { seo_keyword: string; content_type?
   return res.json();
 }
 
+export async function publishContent(id: number) {
+  const res = await fetch(`${API_BASE}/api/content/${id}/publish`, { method: "POST" });
+  return res.json();
+}
+
 export async function fetchCalendar(weekStart?: string): Promise<ContentItem[]> {
   const url = new URL(`${API_BASE}/api/calendar`);
   if (weekStart) url.searchParams.set("week_start", weekStart);

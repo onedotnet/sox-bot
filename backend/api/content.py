@@ -67,3 +67,40 @@ async def trigger_generate(body: ContentGenerateRequest):
         generate_translation=body.generate_translation,
     )
     return {"task_id": task.id, "status": "queued"}
+
+
+@router.post("/{content_id}/publish")
+async def publish_content(content_id: int, db: AsyncSession = Depends(get_db)):
+    """Publish content to its target platform (blog → MDX file + git push)."""
+    from datetime import datetime, timezone
+    import json
+
+    result = await db.execute(select(Content).where(Content.id == content_id))
+    content = result.scalar_one_or_none()
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    if content.target_platform == "blog":
+        from publisher.platforms.blog import BlogPublisher
+        publisher = BlogPublisher()
+        tags = []
+        try:
+            tags = json.loads(content.seo_tags) if content.seo_tags else []
+        except (json.JSONDecodeError, TypeError):
+            pass
+        url = await publisher.publish(
+            title=content.title,
+            body=content.body,
+            summary=content.summary or "",
+            tags=tags,
+            language=content.language.value,
+        )
+        if url:
+            content.status = ContentStatus.published
+            content.published_url = url
+            content.published_at = datetime.now(timezone.utc)
+            await db.commit()
+            return {"status": "published", "url": url}
+        return {"status": "failed", "detail": "Blog publish failed"}
+    else:
+        return {"status": "failed", "detail": f"Publishing to {content.target_platform} not yet supported. Copy content manually."}

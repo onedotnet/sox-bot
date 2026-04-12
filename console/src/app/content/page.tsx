@@ -50,6 +50,7 @@ function ContentCard({
   onEditCancel,
   onApprove,
   onReject,
+  onPublish,
   onToggleExpand,
 }: {
   item: ContentItem;
@@ -66,6 +67,7 @@ function ContentCard({
   onEditCancel: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onPublish: () => void;
   onToggleExpand: () => void;
 }) {
   const typeStyle = CONTENT_TYPE_COLORS[item.content_type] ?? { bg: "bg-zinc-500/10 border-zinc-500/20", text: "text-zinc-400" };
@@ -191,6 +193,15 @@ function ContentCard({
               Approve
             </Button>
           )}
+          {(activeTab === "scheduled" || activeTab === "draft" || activeTab === "review") && (
+            <Button
+              size="sm"
+              className="bg-blue-500/90 hover:bg-blue-500 text-white font-semibold text-xs px-4 rounded-lg"
+              onClick={onPublish}
+            >
+              Publish to Blog
+            </Button>
+          )}
           {!isEditing && (
             <Button
               size="sm"
@@ -262,6 +273,18 @@ export default function ContentPage() {
   const handleApprove = async (item: ContentItem) => {
     await updateContent(item.id, { status: "scheduled" });
     setItems((prev) => prev.filter((i) => i.id !== item.id));
+  };
+
+  const handlePublish = async (item: ContentItem) => {
+    const { publishContent } = await import("@/lib/api");
+    const res = await publishContent(item.id);
+    if (res.status === "published") {
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+    } else {
+      // Copy body to clipboard as fallback
+      try { await navigator.clipboard.writeText(item.body); } catch {}
+      alert(res.detail || "Publish failed. Content copied to clipboard.");
+    }
   };
 
   const handleReject = async (id: number) => {
@@ -438,6 +461,7 @@ export default function ContentPage() {
                 onEditCancel={() => setEditingId(null)}
                 onApprove={() => handleApprove(item)}
                 onReject={() => handleReject(item.id)}
+                onPublish={() => handlePublish(item)}
                 onToggleExpand={() =>
                   setExpandedId((prev) => (prev === item.id ? null : item.id))
                 }
