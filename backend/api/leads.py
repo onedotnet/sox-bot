@@ -56,5 +56,6 @@ async def publish_lead(lead_id: int, db: AsyncSession = Depends(get_db)):
     manager = PublishManager(db=db)
     success = await manager.publish(lead)
     if not success:
-        raise HTTPException(status_code=500, detail="Publish failed")
+        # Don't 500 — return status so frontend can handle gracefully
+        return {"status": "failed", "detail": "Auto-publish unavailable (rate limited or no publisher). Use copy+open."}
     return {"status": "published", "url": lead.published_url}

@@ -237,6 +237,12 @@ function getTimeAgo(dateStr: string): string {
 export default function ScoutPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ msg: string; type: "ok" | "info" } | null>(null);
+
+  const showToast = (msg: string, type: "ok" | "info" = "ok") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 4000);
+  };
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
 
@@ -264,18 +270,18 @@ export default function ScoutPage() {
   const handleApprove = async (lead: Lead) => {
     const replyText = lead.edited_reply || lead.suggested_reply;
     await updateLead(lead.id, { status: "approved" });
-    // Try auto-publish first (works for Reddit/Twitter if configured)
     try {
       const res = await publishLead(lead.id);
       if (res.status === "published") {
+        showToast("Published to " + lead.source);
         setLeads((prev) => prev.filter((l) => l.id !== lead.id));
         return;
       }
-    } catch {
-      // Auto-publish not available for this platform — fallback to copy+open
-    }
+    } catch {}
+    // Fallback: copy + open
     await copyToClipboard(replyText);
     window.open(lead.source_url, "_blank");
+    showToast("Reply copied — paste it on the page", "info");
     setLeads((prev) => prev.filter((l) => l.id !== lead.id));
   };
 
@@ -289,6 +295,7 @@ export default function ScoutPage() {
     try {
       const res = await publishLead(id);
       if (res.status === "published") {
+        showToast("Published successfully");
         setLeads((prev) => prev.filter((l) => l.id !== id));
         setEditingId(null);
         return;
@@ -297,6 +304,7 @@ export default function ScoutPage() {
     await copyToClipboard(editText);
     const lead = leads.find((l) => l.id === id);
     if (lead) window.open(lead.source_url, "_blank");
+    showToast("Reply copied — paste it on the page", "info");
     setLeads((prev) => prev.filter((l) => l.id !== id));
     setEditingId(null);
   };
@@ -371,6 +379,24 @@ export default function ScoutPage() {
           <p className="text-zinc-500 text-xs mt-3">Loading leads...</p>
         </div>
       )}
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className={`fixed bottom-6 right-6 px-4 py-2.5 rounded-lg text-sm font-medium shadow-lg ${
+              toast.type === "ok"
+                ? "bg-emerald-500/90 text-white"
+                : "bg-amber-500/90 text-black"
+            }`}
+          >
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

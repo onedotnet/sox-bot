@@ -120,8 +120,14 @@ class HNHttpPublisher:
                 },
             )
 
-            # HN redirects back to the item page on success
+            if comment_resp.status_code == 429:
+                print(f"HN rate limited — wait before posting again")
+                return None
             if comment_resp.status_code in (200, 302):
+                # Check if the response contains an error message
+                if "Please try again" in comment_resp.text or "submitting too fast" in comment_resp.text:
+                    print(f"HN rate limited (soft) — try again later")
+                    return None
                 print(f"Comment posted on HN item {item_id}")
                 return f"https://news.ycombinator.com/item?id={item_id}"
             else:
