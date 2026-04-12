@@ -41,3 +41,20 @@ async def update_lead(lead_id: int, body: LeadUpdate, db: AsyncSession = Depends
     await db.commit()
     await db.refresh(lead)
     return lead
+
+
+@router.post("/{lead_id}/publish")
+async def publish_lead(lead_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Lead).where(Lead.id == lead_id))
+    lead = result.scalar_one_or_none()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    if lead.status != LeadStatus.approved:
+        raise HTTPException(status_code=400, detail="Lead must be approved before publishing")
+
+    from publisher.manager import PublishManager
+    manager = PublishManager(db=db)
+    success = await manager.publish(lead)
+    if not success:
+        raise HTTPException(status_code=500, detail="Publish failed")
+    return {"status": "published", "url": lead.published_url}
