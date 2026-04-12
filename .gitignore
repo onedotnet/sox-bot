@@ -34,3 +34,6 @@ htmlcov/
 
 # Browser sessions (Playwright persistent contexts)
 .browser-sessions/
+
+# Celery beat schedule
+celerybeat-schedule*
