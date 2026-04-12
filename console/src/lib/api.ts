@@ -44,3 +44,55 @@ export async function createKeyword(data: { term: string; language: string }) {
 export async function deleteKeyword(id: number) {
   await fetch(`${API_BASE}/api/keywords/${id}`, { method: "DELETE" });
 }
+
+export interface ContentItem {
+  id: number;
+  title: string;
+  body: string;
+  summary: string | null;
+  content_type: string;
+  language: string;
+  status: string;
+  seo_keyword: string | null;
+  target_platform: string;
+  published_url: string | null;
+  scheduled_at: string | null;
+  quality_passed: boolean;
+  quality_notes: string | null;
+  pair_id: string | null;
+  generation_cost_cents: number;
+  created_at: string;
+}
+
+export async function fetchContent(params?: { status?: string; content_type?: string }): Promise<ContentItem[]> {
+  const url = new URL(`${API_BASE}/api/content`);
+  if (params?.status) url.searchParams.set("status", params.status);
+  if (params?.content_type) url.searchParams.set("content_type", params.content_type);
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
+export async function updateContent(id: number, data: { title?: string; body?: string; status?: string }) {
+  const res = await fetch(`${API_BASE}/api/content/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function generateContent(data: { seo_keyword: string; content_type?: string; language?: string }) {
+  const res = await fetch(`${API_BASE}/api/content/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function fetchCalendar(weekStart?: string): Promise<ContentItem[]> {
+  const url = new URL(`${API_BASE}/api/calendar`);
+  if (weekStart) url.searchParams.set("week_start", weekStart);
+  const res = await fetch(url.toString());
+  return res.json();
+}
