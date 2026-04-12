@@ -31,3 +31,6 @@ htmlcov/
 
 # Database
 *.db
+
+# Browser sessions (Playwright persistent contexts)
+.browser-sessions/
