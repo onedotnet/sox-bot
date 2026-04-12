@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: soxbot
+      POSTGRES_USER: soxbot
+      POSTGRES_PASSWORD: soxbot
+    ports:
+      - "5433:5432"
+    volumes:
+      - soxbot_pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+  api:
+    build: .
+    ports:
+      - "8090:8090"
+    environment:
+      SOXBOT_DATABASE_URL: postgresql+asyncpg://soxbot:soxbot@postgres:5432/soxbot
+      SOXBOT_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build: .
+    command: celery -A tasks.celery_app worker -l info -B
+    environment:
+      SOXBOT_DATABASE_URL: postgresql+asyncpg://soxbot:soxbot@postgres:5432/soxbot
+      SOXBOT_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  soxbot_pg_data:
