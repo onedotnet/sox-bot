@@ -158,7 +158,7 @@ function LeadCard({
                 className="bg-amber-500 hover:bg-amber-600 text-black font-semibold text-xs px-4"
                 onClick={onEditSave}
               >
-                Save & Publish
+                Save & Copy
               </Button>
               <Button size="sm" variant="ghost" className="text-xs text-zinc-500" onClick={onEditCancel}>
                 Cancel
@@ -183,7 +183,7 @@ function LeadCard({
             className="bg-emerald-500/90 hover:bg-emerald-500 text-black font-semibold text-xs px-5 rounded-lg"
             onClick={onApprove}
           >
-            Publish
+            Approve & Copy
           </Button>
           <Button
             size="sm"
@@ -234,9 +234,26 @@ export default function ScoutPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback for non-HTTPS
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+  };
+
   const handleApprove = async (lead: Lead) => {
+    const replyText = lead.edited_reply || lead.suggested_reply;
+    await copyToClipboard(replyText);
     await updateLead(lead.id, { status: "approved" });
-    try { await publishLead(lead.id); } catch {}
+    // Open the source post in a new tab so user can paste the reply
+    window.open(lead.source_url, "_blank");
     setLeads((prev) => prev.filter((l) => l.id !== lead.id));
   };
 
@@ -246,8 +263,12 @@ export default function ScoutPage() {
   };
 
   const handleEditSave = async (id: number) => {
+    const replyText = editText;
+    await copyToClipboard(replyText);
     await updateLead(id, { edited_reply: editText, status: "approved" });
-    try { await publishLead(id); } catch {}
+    // Open source post to paste
+    const lead = leads.find((l) => l.id === id);
+    if (lead) window.open(lead.source_url, "_blank");
     setLeads((prev) => prev.filter((l) => l.id !== id));
     setEditingId(null);
   };
