@@ -1,3 +1,11 @@
+import os
+import sys
+
+# Ensure backend/ is in sys.path for Celery worker subprocesses
+_backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
+
 from celery import Celery
 from celery.schedules import crontab
 from config import settings

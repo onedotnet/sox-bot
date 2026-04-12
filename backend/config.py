@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings
 
 
@@ -34,7 +36,11 @@ class Settings(BaseSettings):
     # Discord
     discord_token: str = ""
 
-    model_config = {"env_prefix": "SOXBOT_", "env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_prefix": "SOXBOT_",
+        "env_file": os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
+        "env_file_encoding": "utf-8",
+    }
 
 
 settings = Settings()

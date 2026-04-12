@@ -44,7 +44,7 @@ class ContentGenerator:
             self._client = httpx.AsyncClient(
                 base_url=settings.soxai_base_url,
                 headers={"Authorization": f"Bearer {settings.soxai_api_key}"},
-                timeout=120.0,
+                timeout=300.0,
             )
         return self._client
 
