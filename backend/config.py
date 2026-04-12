@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # Discord
     discord_token: str = ""
 
+    # Telegram
+    telegram_token: str = ""
+
     model_config = {
         "env_prefix": "SOXBOT_",
         "env_file": os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
