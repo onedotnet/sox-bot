@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.lead import Lead, LeadStatus
 from publisher.platforms.hn_http import HNHttpPublisher
+from publisher.platforms.reddit_http import RedditHttpPublisher
 
 
 class PublishManager:
@@ -11,6 +12,7 @@ class PublishManager:
         self.db = db
         self.publishers: dict = {
             "hackernews": HNHttpPublisher(),
+            "reddit": RedditHttpPublisher(),
         }
 
     async def publish(self, lead: Lead) -> bool:
