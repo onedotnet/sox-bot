@@ -96,3 +96,41 @@ export async function fetchCalendar(weekStart?: string): Promise<ContentItem[]> 
   const res = await fetch(url.toString());
   return res.json();
 }
+
+export interface CommunityMessage {
+  id: number;
+  platform: string;
+  author_name: string;
+  message_text: string;
+  intent: string;
+  response_text: string | null;
+  escalated: boolean;
+  is_lead: boolean;
+  created_at: string;
+}
+
+export interface CommunityStats {
+  total_messages: number;
+  auto_resolved: number;
+  escalated: number;
+  leads_detected: number;
+  resolution_rate: number;
+}
+
+export async function fetchCommunityMessages(params?: { escalated?: boolean; is_lead?: boolean }): Promise<CommunityMessage[]> {
+  const url = new URL(`${API_BASE}/api/community/messages`);
+  if (params?.escalated !== undefined) url.searchParams.set("escalated", String(params.escalated));
+  if (params?.is_lead !== undefined) url.searchParams.set("is_lead", String(params.is_lead));
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
+export async function fetchCommunityStats(): Promise<CommunityStats> {
+  const res = await fetch(`${API_BASE}/api/community/stats`);
+  return res.json();
+}
+
+export async function triggerReindex() {
+  const res = await fetch(`${API_BASE}/api/community/knowledge/reindex`, { method: "POST" });
+  return res.json();
+}

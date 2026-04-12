@@ -23,6 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/content" className="block px-3 py-2 rounded hover:bg-zinc-800 text-zinc-300">
               Content
             </Link>
+            <Link href="/community" className="block px-3 py-2 rounded hover:bg-zinc-800 text-zinc-300">
+              Community
+            </Link>
           </nav>
         </aside>
         <main className="flex-1">{children}</main>
