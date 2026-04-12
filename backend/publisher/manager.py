@@ -3,16 +3,14 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.lead import Lead, LeadStatus
-from publisher.platforms.browser import HNPublisher, RedditPublisher
+from publisher.platforms.hn_http import HNHttpPublisher
 
 
 class PublishManager:
     def __init__(self, db: AsyncSession):
         self.db = db
-        # Browser-based publishers — work if user has logged in via browser_login.py
         self.publishers: dict = {
-            "hackernews": HNPublisher(),
-            "reddit": RedditPublisher(),
+            "hackernews": HNHttpPublisher(),
         }
 
     async def publish(self, lead: Lead) -> bool:

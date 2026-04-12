@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # Twitter
     twitter_bearer_token: str = ""
 
+    # HackerNews
+    hn_username: str = ""
+    hn_password: str = ""
+
     # Discord
     discord_token: str = ""
 
