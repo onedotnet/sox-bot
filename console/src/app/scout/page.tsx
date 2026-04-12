@@ -158,7 +158,7 @@ function LeadCard({
                 className="bg-amber-500 hover:bg-amber-600 text-black font-semibold text-xs px-4"
                 onClick={onEditSave}
               >
-                Save & Copy
+                Save & Approve
               </Button>
               <Button size="sm" variant="ghost" className="text-xs text-zinc-500" onClick={onEditCancel}>
                 Cancel
@@ -183,7 +183,7 @@ function LeadCard({
             className="bg-emerald-500/90 hover:bg-emerald-500 text-black font-semibold text-xs px-5 rounded-lg"
             onClick={onApprove}
           >
-            Approve & Copy
+            Approve
           </Button>
           <Button
             size="sm"
@@ -250,9 +250,18 @@ export default function ScoutPage() {
 
   const handleApprove = async (lead: Lead) => {
     const replyText = lead.edited_reply || lead.suggested_reply;
-    await copyToClipboard(replyText);
     await updateLead(lead.id, { status: "approved" });
-    // Open the source post in a new tab so user can paste the reply
+    // Try auto-publish first (works for Reddit/Twitter if configured)
+    try {
+      const res = await publishLead(lead.id);
+      if (res.status === "published") {
+        setLeads((prev) => prev.filter((l) => l.id !== lead.id));
+        return;
+      }
+    } catch {
+      // Auto-publish not available for this platform — fallback to copy+open
+    }
+    await copyToClipboard(replyText);
     window.open(lead.source_url, "_blank");
     setLeads((prev) => prev.filter((l) => l.id !== lead.id));
   };
@@ -263,10 +272,16 @@ export default function ScoutPage() {
   };
 
   const handleEditSave = async (id: number) => {
-    const replyText = editText;
-    await copyToClipboard(replyText);
     await updateLead(id, { edited_reply: editText, status: "approved" });
-    // Open source post to paste
+    try {
+      const res = await publishLead(id);
+      if (res.status === "published") {
+        setLeads((prev) => prev.filter((l) => l.id !== id));
+        setEditingId(null);
+        return;
+      }
+    } catch {}
+    await copyToClipboard(editText);
     const lead = leads.find((l) => l.id === id);
     if (lead) window.open(lead.source_url, "_blank");
     setLeads((prev) => prev.filter((l) => l.id !== id));
