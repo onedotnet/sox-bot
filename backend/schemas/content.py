@@ -40,8 +40,8 @@ class ContentUpdate(BaseModel):
 
 
 class ContentGenerateRequest(BaseModel):
-    content_type: ContentType
     seo_keyword: str
-    language: ContentLanguage
-    target_platform: str
-    generate_translation: bool = False
+    content_type: ContentType = ContentType.seo_article
+    language: ContentLanguage = ContentLanguage.en
+    target_platform: str = "blog"
+    generate_translation: bool = True
