@@ -138,7 +138,7 @@ function LeadCard({
       {/* Original text */}
       <div className="px-5 pb-3">
         <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-3.5">
-          <p className="text-[13px] text-zinc-400 leading-relaxed line-clamp-4">{stripHtml(lead.original_text)}</p>
+          <p className="text-[13px] text-zinc-400 leading-relaxed whitespace-pre-wrap">{decodeHtml(lead.original_text)}</p>
         </div>
       </div>
 
@@ -208,8 +208,21 @@ function LeadCard({
   );
 }
 
-function stripHtml(text: string): string {
-  return text.replace(/<[^>]*>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
+function decodeHtml(text: string): string {
+  // Convert HN's HTML: <p> → newline, decode entities, strip remaining tags
+  return text
+    .replace(/<p>/gi, "\n\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function getTimeAgo(dateStr: string): string {
