@@ -86,7 +86,7 @@ async def test_generate_calls_three_models_in_sequence(httpx_mock):
     assert result.body == MOCK_BODY
     assert result.summary == MOCK_SEO["summary"]
     assert result.seo_tags == MOCK_SEO["tags"]
-    assert result.outline_model == "deepseek/deepseek-chat"
+    assert result.outline_model == "gpt-4o-mini"
     assert result.body_model == "anthropic/claude-sonnet-4-5"
     assert result.seo_model == "openai/gpt-4o-mini"
 

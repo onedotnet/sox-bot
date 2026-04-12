@@ -41,7 +41,7 @@ class ScoutAnalyzer:
             context += f", Subreddit: {subreddit}"
 
         response = self.client.chat.completions.create(
-            model="deepseek-chat",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": f"{context}\n\nPost:\n{text}"},

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # Discord
     discord_token: str = ""
 
-    model_config = {"env_prefix": "SOXBOT_"}
+    model_config = {"env_prefix": "SOXBOT_", "env_file": ".env", "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

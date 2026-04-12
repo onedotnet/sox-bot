@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: soxbot
       POSTGRES_PASSWORD: soxbot
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - soxbot_pg_data:/var/lib/postgresql/data
 
