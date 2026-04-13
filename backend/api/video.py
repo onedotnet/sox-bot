@@ -58,42 +58,45 @@ async def list_videos():
         return []
 
     videos = []
-    for d in sorted(video_dir.iterdir(), reverse=True):
-        if not d.is_dir():
-            continue
-        mp4_files = list(d.glob("*.mp4"))
-        if not mp4_files:
-            continue
-        # Find the main video file
-        main = next((f for f in mp4_files if f.name in ("final.mp4", "tutorial.mp4", "soxai-promo.mp4")), mp4_files[0])
-        size = main.stat().st_size
-        videos.append({
-            "id": d.name,
-            "filename": main.name,
-            "path": str(main),
-            "size_kb": size // 1024,
-            "created_at": d.stat().st_mtime,
-            "type": "promo" if "promo" in d.name else ("tutorial" if "tutorial" in d.name else "short"),
-        })
 
+    def scan_dir(parent: Path):
+        for d in sorted(parent.iterdir(), reverse=True):
+            if not d.is_dir():
+                continue
+            mp4_files = list(d.glob("*.mp4"))
+            if not mp4_files:
+                # Check subdirectories (e.g. series/)
+                scan_dir(d)
+                continue
+            main = next((f for f in mp4_files if f.name in ("final.mp4", "tutorial.mp4", "soxai-promo.mp4")), mp4_files[0])
+            size = main.stat().st_size
+            rel = d.relative_to(video_dir)
+            videos.append({
+                "id": str(rel),
+                "filename": main.name,
+                "path": str(main),
+                "size_kb": size // 1024,
+                "created_at": d.stat().st_mtime,
+                "type": "promo" if "promo" in d.name else ("tutorial" if "tutorial" in d.name else "short"),
+            })
+
+    scan_dir(video_dir)
     return videos
 
 
-@router.get("/stream/{video_id}")
+@router.get("/stream/{video_id:path}")
 async def stream_video(video_id: str):
     """Stream a video file for browser playback."""
-    import os
     from pathlib import Path
 
     video_dir = Path("/tmp/sox-bot-videos")
-    # Search in series/ and top-level
-    for search_dir in [video_dir / "series", video_dir]:
-        candidate = search_dir / video_id
-        if candidate.is_dir():
-            for name in ("final.mp4", "tutorial.mp4", "soxai-promo.mp4"):
-                mp4 = candidate / name
-                if mp4.exists():
-                    return FileResponse(str(mp4), media_type="video/mp4", filename=f"{video_id}.mp4")
+    # Direct path: e.g. "series/game-npc-dialogue" or "promo-309e70b4"
+    candidate = video_dir / video_id
+    if candidate.is_dir():
+        for name in ("final.mp4", "tutorial.mp4", "soxai-promo.mp4"):
+            mp4 = candidate / name
+            if mp4.exists():
+                return FileResponse(str(mp4), media_type="video/mp4", filename=f"{video_id.replace('/', '-')}.mp4")
 
     raise HTTPException(status_code=404, detail="Video not found")
 
