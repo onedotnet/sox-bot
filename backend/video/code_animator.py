@@ -196,8 +196,8 @@ def render_typing_frames(code_lines: list[str], output_dir: str,
         img.save(frame_path)
         frames.append(frame_path)
 
-    # Hold last frame for a moment (30 extra frames = 1 second at 30fps)
-    for i in range(30):
+    # Hold last frame for a moment (90 extra frames = 3 seconds at 30fps)
+    for i in range(90):
         frames.append(frames[-1])
 
     return frames
