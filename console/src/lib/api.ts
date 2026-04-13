@@ -197,6 +197,10 @@ export interface VideoItem {
   type: string;
 }
 
+export function getVideoStreamUrl(videoId: string): string {
+  return `${API_BASE}/api/video/stream/${videoId}`;
+}
+
 export async function fetchVideos(): Promise<VideoItem[]> {
   const res = await fetch(`${API_BASE}/api/video/list`);
   return res.json();

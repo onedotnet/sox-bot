@@ -11,6 +11,7 @@ import {
   generateVideo,
   generatePromo,
   uploadToYouTube,
+  getVideoStreamUrl,
 } from "@/lib/api";
 
 function VideoIcon() {
@@ -37,6 +38,7 @@ export default function VideoPage() {
   const [language, setLanguage] = useState("en");
   const [generating, setGenerating] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDesc, setUploadDesc] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "info" | "error" } | null>(null);
@@ -238,20 +240,52 @@ export default function VideoPage() {
                       </div>
                       <div className="flex gap-2">
                         {!isUploading && (
-                          <Button
-                            size="sm"
-                            className="bg-red-500/80 hover:bg-red-500 text-white font-semibold text-xs px-4"
-                            onClick={() => {
-                              setUploadingId(video.id);
-                              setUploadTitle(`SoxAI — ${video.type === "promo" ? "Product Overview" : "Quick Tip"}`);
-                              setUploadDesc(`Try free: https://console.soxai.io/register\nDocs: https://docs.soxai.io`);
-                            }}
-                          >
-                            Upload to YouTube
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-zinc-400 hover:text-white px-3"
+                              onClick={() => setPlayingId(playingId === video.id ? null : video.id)}
+                            >
+                              {playingId === video.id ? "Close" : "▶ Play"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-red-500/80 hover:bg-red-500 text-white font-semibold text-xs px-4"
+                              onClick={() => {
+                                setUploadingId(video.id);
+                                setUploadTitle(`SoxAI — ${video.type === "promo" ? "Product Overview" : "Quick Tip"}`);
+                                setUploadDesc(`Try free: https://console.soxai.io/register\nDocs: https://docs.soxai.io`);
+                              }}
+                            >
+                              Upload to YouTube
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
+
+                    {/* Video player */}
+                    <AnimatePresence>
+                      {playingId === video.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mb-3 flex justify-center"
+                        >
+                          <div className={`rounded-lg overflow-hidden border border-white/[0.06] ${video.type === "promo" ? "w-full max-w-[640px]" : "w-[240px]"}`}>
+                            <video
+                              src={getVideoStreamUrl(video.id)}
+                              controls
+                              autoPlay
+                              className="w-full"
+                              style={{ maxHeight: video.type === "promo" ? "360px" : "426px" }}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Upload form */}
                     <AnimatePresence>

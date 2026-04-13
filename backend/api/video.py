@@ -1,6 +1,7 @@
 """Video generation + upload API endpoints."""
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/video", tags=["video"])
@@ -76,6 +77,25 @@ async def list_videos():
         })
 
     return videos
+
+
+@router.get("/stream/{video_id}")
+async def stream_video(video_id: str):
+    """Stream a video file for browser playback."""
+    import os
+    from pathlib import Path
+
+    video_dir = Path("/tmp/sox-bot-videos")
+    # Search in series/ and top-level
+    for search_dir in [video_dir / "series", video_dir]:
+        candidate = search_dir / video_id
+        if candidate.is_dir():
+            for name in ("final.mp4", "tutorial.mp4", "soxai-promo.mp4"):
+                mp4 = candidate / name
+                if mp4.exists():
+                    return FileResponse(str(mp4), media_type="video/mp4", filename=f"{video_id}.mp4")
+
+    raise HTTPException(status_code=404, detail="Video not found")
 
 
 @router.post("/upload-youtube")
