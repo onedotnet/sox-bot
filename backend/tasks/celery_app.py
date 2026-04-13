@@ -271,3 +271,91 @@ def generate_weekly_report_task():
 
     asyncio.run(_generate())
     print("Weekly report generated")
+
+
+@celery.task
+def generate_video_task(topic: str, video_type: str = "tip",
+                        language: str = "en", voice: str = "en_casual") -> str:
+    """Generate a short-form video."""
+    import asyncio
+    from video.pipeline import VideoPipeline
+
+    async def _gen():
+        pipeline = VideoPipeline()
+        result = await pipeline.generate(topic, video_type=video_type,
+                                          language=language, voice=voice)
+        return result["video_path"]
+
+    path = asyncio.run(_gen())
+    print(f"Video generated: {path}")
+    return path
+
+
+@celery.task
+def generate_promo_task() -> str:
+    """Generate a landscape promo video."""
+    import asyncio
+    import subprocess
+    import uuid
+    import os
+
+    async def _gen():
+        # Import and run the promo generator logic
+        from scripts.generate_promo import (
+            scene_title_intro, scene_problem, scene_solution,
+            scene_code_demo, scene_stats, scene_cta,
+            frames_to_clip, generate_audio,
+        )
+
+        video_id = uuid.uuid4().hex[:8]
+        work_dir = f"/tmp/sox-bot-videos/promo-{video_id}"
+        os.makedirs(work_dir, exist_ok=True)
+
+        narrations = {
+            "intro": "SoxAI. The AI API Gateway for Enterprise.",
+            "problem": "Most teams use multiple AI providers. Four API keys, four billing dashboards, three different SDKs, and zero visibility.",
+            "solution": "SoxAI is an OpenAI-compatible gateway. One endpoint for two hundred plus models. Automatic failover. Team budgets.",
+            "code": "Two lines of code. Set your API key, point to SoxAI, done. Same SDK. Any model.",
+            "stats": "Two hundred plus models. Forty plus providers. Under five milliseconds latency. Free five dollar credit.",
+            "cta": "SoxAI. One API for every AI model. Start free at soxai dot io.",
+        }
+
+        audio_files = {}
+        for key, text in narrations.items():
+            path = f"{work_dir}/audio_{key}.mp3"
+            await generate_audio(text, path, voice="en_casual", rate="-5%")
+            audio_files[key] = path
+
+        scenes = [
+            ("intro", scene_title_intro),
+            ("problem", scene_problem),
+            ("solution", scene_solution),
+            ("code", scene_code_demo),
+            ("stats", scene_stats),
+            ("cta", scene_cta),
+        ]
+
+        clips = []
+        for i, (name, renderer) in enumerate(scenes):
+            frame_dir = f"{work_dir}/{name}_frames"
+            os.makedirs(frame_dir, exist_ok=True)
+            frames = renderer(frame_dir)
+            clip_path = f"{work_dir}/clip_{i:02d}_{name}.mp4"
+            frames_to_clip(frames, audio_files.get(name), clip_path)
+            clips.append(clip_path)
+
+        concat_file = f"{work_dir}/concat.txt"
+        with open(concat_file, "w") as f:
+            for clip in clips:
+                f.write(f"file '{clip}'\n")
+
+        output = f"{work_dir}/soxai-promo.mp4"
+        subprocess.run([
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_file,
+            "-c", "copy", output,
+        ], capture_output=True)
+        return output
+
+    path = asyncio.run(_gen())
+    print(f"Promo video generated: {path}")
+    return path

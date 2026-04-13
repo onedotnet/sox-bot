@@ -186,3 +186,41 @@ export async function triggerReport() {
   const res = await fetch(`${API_BASE}/api/analytics/reports/generate`, { method: "POST" });
   return res.json();
 }
+
+// Video
+export interface VideoItem {
+  id: string;
+  filename: string;
+  path: string;
+  size_kb: number;
+  created_at: number;
+  type: string;
+}
+
+export async function fetchVideos(): Promise<VideoItem[]> {
+  const res = await fetch(`${API_BASE}/api/video/list`);
+  return res.json();
+}
+
+export async function generateVideo(data: { topic: string; video_type?: string; language?: string }) {
+  const res = await fetch(`${API_BASE}/api/video/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function generatePromo() {
+  const res = await fetch(`${API_BASE}/api/video/generate-promo`, { method: "POST" });
+  return res.json();
+}
+
+export async function uploadToYouTube(data: { video_path: string; title: string; description: string; tags?: string[] }) {
+  const res = await fetch(`${API_BASE}/api/video/upload-youtube`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
