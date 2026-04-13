@@ -81,6 +81,8 @@ async def publish_content(content_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Content not found")
 
     if content.target_platform == "blog":
+        if content.language.value != "en":
+            return {"status": "skipped", "detail": f"Blog only publishes English content. This is {content.language.value}. Use a Chinese platform (Zhihu, WeChat) instead."}
         from publisher.platforms.blog import BlogPublisher
         publisher = BlogPublisher()
         tags = []
