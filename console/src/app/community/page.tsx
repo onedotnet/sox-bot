@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 
 const TABS = [
+  { label: "All Messages", key: "all" },
   { label: "Escalated", key: "escalated" },
   { label: "Enterprise Leads", key: "leads" },
 ] as const;
@@ -21,6 +22,7 @@ type TabKey = (typeof TABS)[number]["key"];
 
 const PLATFORM_STYLES: Record<string, { bg: string; text: string; initial: string }> = {
   discord: { bg: "bg-indigo-500/20", text: "text-indigo-300", initial: "D" },
+  telegram: { bg: "bg-sky-500/20", text: "text-sky-300", initial: "T" },
   wechat: { bg: "bg-emerald-500/20", text: "text-emerald-300", initial: "W" },
   slack: { bg: "bg-amber-500/20", text: "text-amber-300", initial: "S" },
   twitter: { bg: "bg-sky-500/20", text: "text-sky-300", initial: "X" },
@@ -138,7 +140,7 @@ function MessageCard({ msg, index }: { msg: CommunityMessage; index: number }) {
 }
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>("escalated");
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [stats, setStats] = useState<CommunityStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -150,7 +152,7 @@ export default function CommunityPage() {
 
   useEffect(() => {
     setLoading(true);
-    const params = activeTab === "escalated" ? { escalated: true } : { is_lead: true };
+    const params = activeTab === "all" ? {} : activeTab === "escalated" ? { escalated: true } : { is_lead: true };
     fetchCommunityMessages(params)
       .then(setMessages)
       .catch(console.error)
@@ -255,7 +257,7 @@ export default function CommunityPage() {
                 <CommunityIcon />
               </div>
               <p className="text-zinc-500 text-sm">
-                No {activeTab === "escalated" ? "escalated messages" : "enterprise leads"} found.
+                No {activeTab === "all" ? "messages" : activeTab === "escalated" ? "escalated messages" : "enterprise leads"} found.
               </p>
               <p className="text-zinc-600 text-xs mt-1">CommunityBot is monitoring all channels...</p>
             </motion.div>
