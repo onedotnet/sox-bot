@@ -60,11 +60,13 @@ def generate_content_task(
     from database import async_session
     from content.generator import ContentGenerator
     from content.quality import QualityChecker
+    from content.enricher import ContentEnricher
     from models.content import Content, ContentLanguage, ContentStatus, ContentType
 
     async def _generate() -> int:
         generator = ContentGenerator()
         checker = QualityChecker()
+        enricher = ContentEnricher()
         try:
             result = await generator.generate(
                 content_type=ContentType(content_type),
@@ -72,6 +74,9 @@ def generate_content_task(
                 language=ContentLanguage(language),
                 target_platform=target_platform,
             )
+
+            # Enrich with real data (code examples, pricing, stats)
+            result.body = await enricher.enrich(result.body, content_type)
 
             translated_body: str | None = None
             translate_model: str | None = None

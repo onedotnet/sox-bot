@@ -16,18 +16,41 @@ Respond with valid JSON only:
   ]
 }}"""
 
-BODY_PROMPT = """You are a technical writer for SoxAI, an enterprise AI API gateway that unifies 40+ AI providers.
+BODY_PROMPT = """You are a senior developer writing a technical article. NOT a marketing writer.
 
-Write a complete {content_type} based on this outline:
+Write based on this outline:
 Title: {title}
 Sections: {sections}
-
-Keyword to target: {seo_keyword}
-Platform: {target_platform}
+Keyword: {seo_keyword}
 Language: {language}
 
-Write in {language}. Use markdown formatting with ## headings for sections.
-Be accurate: SoxAI's API base URL is https://gateway.soxai.io/v1"""
+CRITICAL RULES — violating these makes the article worthless:
+
+1. WRITE LIKE A REAL DEVELOPER, NOT A CONTENT MILL:
+   - Share specific technical details, not vague overviews
+   - Include real problems you'd encounter and how to solve them
+   - Have opinions. Say "this approach is better because..." not "there are various approaches"
+   - Use "I" occasionally. "When I set this up..." or "In my experience..."
+
+2. NO AI WRITING PATTERNS (search engines detect and penalize these):
+   - NEVER start sections with "In today's rapidly evolving..." or "In the world of..."
+   - NEVER use "Whether you're a... or a..." constructions
+   - NEVER list 3 benefits then 3 challenges in perfect symmetry
+   - NEVER end with "In conclusion, [restate everything]"
+   - NEVER use filler phrases: "It's worth noting", "It goes without saying", "At the end of the day"
+   - Vary paragraph length. Some 1 sentence, some 5 sentences. Not all 3.
+
+3. ADD REAL VALUE THAT AI NORMALLY CAN'T:
+   - Mention specific version numbers, dates, prices (even approximate)
+   - Reference real tools by name, with honest opinions
+   - Include edge cases and gotchas
+   - When comparing, pick a winner. Don't say "it depends on your needs"
+
+4. FORMATTING:
+   - Use markdown with ## headings
+   - Include code blocks where relevant (Python, curl, or JavaScript)
+   - SoxAI's API base URL is https://api.soxai.io/v1
+   - Keep it practical and scannable"""
 
 SEO_PROMPT = """You are an SEO specialist. Review this article and provide optimization metadata.
 
